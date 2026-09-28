@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ujian Digital - MTs Buninagara</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @media print {
+            body * { visibility: hidden; }
+            #printable-area, #printable-area * { visibility: visible; }
+            #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-brand-500 selection:text-white">
+
+    <div id="app" class="min-h-screen flex flex-col md:flex-row pb-16 md:pb-0">
+        
+        <!-- SIDEBAR FOR DESKTOP -->
+        <aside id="sidebar" class="hidden md:flex flex-col w-64 bg-brand-900 text-white min-h-screen shadow-xl no-print">
+            <div class="p-4 flex items-center gap-3 border-b border-brand-800">
+                <img id="sidebar-logo" src="https://placehold.co/80x80/047857/ffffff?text=MTs" class="w-10 h-10 rounded-full bg-white p-1 object-cover" alt="Logo MTs">
+                <div>
+                    <h1 class="font-bold text-sm leading-tight text-white">MTs BUNINAGARA</h1>
+                    <p class="text-[11px] text-brand-200">Ujian Berbasis Digital</p>
+                </div>
+            </div>
+            
+            <div class="px-4 py-3 bg-brand-800/50 border-b border-brand-800">
+                <p class="text-xs text-brand-200">Login Sebagai:</p>
+                <p id="user-display-name" class="font-semibold text-sm text-yellow-300 truncate">Administrator</p>
+                <span id="user-display-role" class="inline-block mt-1 text-[10px] bg-brand-700 px-2 py-0.5 rounded text-white uppercase">Admin</span>
+            </div>
+
+            <nav class="flex-1 p-3 space-y-1 overflow-y-auto" id="desktop-menu">
+                <!-- Navigation items dynamically inserted by JS -->
+            </nav>
+
+            <div class="p-3 border-t border-brand-800">
+                <button onclick="handleLogout()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-200 hover:bg-red-600 hover:text-white transition">
+                    <i class="fa-solid font-bold fa-right-from-bracket">iostream</i>
+                    <span>Keluar / Change Role</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- TOP BAR FOR MOBILE -->
+        <header class="md:hidden bg-brand-900 text-white p-3 flex items-center justify-between sticky top-0 z-40 shadow-md no-print">
+            <div class="flex items-center gap-2">
+                <img id="mobile-logo" src="https://placehold.co/80x80/047857/ffffff?text=MTs" class="w-8 h-8 rounded-full bg-white p-0.5" alt="Logo">
+                <span class="font-bold text-sm tracking-wide">MTs BUNINAGARA</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="mobile-user-role" class="text-[10px] bg-brand-700 px-2 py-1 rounded text-yellow-300 uppercase font-bold">Admin</span>
+                <button onclick="handleLogout()" class="text-red-300 hover:text-white text-xs p-1">
+                    <i class="fa-solid fa-power-off text-base"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+            <div id="content-area">
+                <!-- Content injected via JavaScript -->
+            </div>
+        </main>
+
+        <!-- BOTTOM NAVIGATION FOR MOBILE (HP ANDROID FRIENDLY) -->
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around p-1 z-40 no-print text-center shadow-lg" id="mobile-menu">
+            <!-- Mobile Navigation Dynamic -->
+        </nav>
+    </div>
+
+    <!-- MODAL CONTAINER -->
+    <div id="modal-container" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div id="modal-content" class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 transition-all transform">
+            <!-- Dynamic Modal Content -->
+        </div>
+    </div>
+
+    <script>
+        // ================= SYSTEM INITIAL STATE & STORAGE =================
+        const SUBJECTS = [
+            "Al-Qur'an Hadis", "Aqidah Akhlak", "Fikih", "Sejarah Kebudayaan Islam (SKI)",
+            "Bahasa Indonesia", "Bahasa Arab", "Bahasa Inggris", "Matematika",
+            "Ilmu Pengetahuan Alam (IPA)", "Ilmu Pengetahuan Sosial (IPS)",
+            "Pendidikan Pancasila (PPKn)", "PJOK", "Seni Budaya", "Prakarya",
+            "Mulok: Bahasa Sunda", "Mulok: Ilmu Nahwu"
+        ];
+
+        const DEFAULT_SETTINGS = {
+            logo: "https://placehold.co/120x120/047857/ffffff?text=MTs+Buninagara",
+            schoolName: "MADRASAH TSANAWIYAH BUNINAGARA",
+            nsm: "121232070088",
+            address: "Jl. Raya Buninagara No. 45, Desa Buninagara, Kec. Kutawaringin",
+            principal: "Dadan Hidayat, S.Pd.I",
+            nip: "19780512 200501 1 003",
+            kopHeader: "KEMENTERIAN AGAMA REPUBLIK INDONESIA\nKANTOR KEMENTERIAN AGAMA KABUPATEN BANDUNG\nMTs BUNINAGARA"
+        };
+
+        const DEFAULT_TEACHERS = [
+            { id: "G001", name: "Dadan Hidayat, S.Pd.I", nip: "197805122005011003", mapel: "Mulok: Ilmu Nahwu", username: "dadan_nahwu" },
+            { id: "G002", name: "Siti Nurhaliza, S.Pd", nip: "198503142010012005", mapel: "Mulok: Bahasa Sunda", username: "siti_sunda" },
+            { id: "G003", name: "Ahmad Fauzi, M.Ag", nip: "199001012015031002", mapel: "Al-Qur'an Hadis", username: "ahmad_quran" }
+        ];
+
+        const DEFAULT_STUDENTS = [
+            { id: "S001", nisn: "0081234567", name: "Asep Ridwan", class: "7A", dob: "12052010" },
+            { id: "S002", nisn: "0087654321", name: "Neng Lilis", class: "7A", dob: "25082010" },
+            { id: "S003", nisn: "0091122334", name: "Muhammad Zaky", class: "8B", dob: "01012009" }
+        ];
+
+        const DEFAULT_EXAMS = [
+            {
+                id: "EX01",
+                title: "Asesmen Sumatif Ilmu Nahwu Semester 1",
+                subject: "Mulok: Ilmu Nahwu",
+                duration: 60,
+                kkm: 75,
+                teacherId: "G001",
+                proctor: "Siti Nurhaliza, S.Pd",
+                date: "2026-10-05",
+                time: "08:00 - 09:00",
+                token: "NAHWU7",
+                active: true,
+                questions: [
+                    {
+                        id: 1, type: "PG",
+                        question: "Kalimat dalam bahasa Arab dibagi menjadi 3 bagian, yaitu...",
+                        options: ["Isim, Fi'il, Huruf", "Mubtada, Khabar, Fail", "Rafa, Nasab, Jer", "Fi'il Madhi, Mudhari, Amar"],
+                        answer: 0
+                    },
+                    {
+                        id: 2, type: "PG",
+                        question: "Tanda utama i'rab Rafa pada Isim Mufrad adalah...",
+                        options: ["Fathah", "Kasrah", "Dammah", "Sukun"],
+                        answer: 2
+                    },
+                    {
+                        id: 3, type: "Essay",
+                        question: "Jelaskan pengertian Isim beserta 2 contohnya!",
+                        answerKey: "Isim adalah kata benda/kata kerja yang tidak terikat waktu. Contoh: Kitabun, Zaidun."
+                    }
+                ]
+            }
+        ];
+
+        // LocalStorage Initialization
+        function getStorage(key, defaultData) {
+            const data = localStorage.getItem('mts_' + key);
+            return data ? JSON.parse(data) : defaultData;
+        }
+
+        function setStorage(key, data) {
+            localStorage.setItem('mts_' + key, JSON.stringify(data));
+        }
+
+        let appData = {
+            settings: getStorage('settings', DEFAULT_SETTINGS),
+            teachers: getStorage('teachers', DEFAULT_TEACHERS),
+            students: getStorage('students', DEFAULT_STUDENTS),
+            exams: getStorage('exams', DEFAULT_EXAMS),
+            results: getStorage('results', []),
+            currentUser: getStorage('currentUser', { role: 'admin', name: 'Administrator MTs', username: 'MTsbuninagara' })
+        };
+
+        function saveData() {
+            setStorage('settings', appData.settings);
+            setStorage('teachers', appData.teachers);
+            setStorage('students', appData.students);
+            setStorage('exams', appData.exams);
+            setStorage('results', appData.results);
+            setStorage('currentUser', appData.currentUser);
+        }
+
+        // Active Navigation Tab
+        let currentTab = 'dashboard';
+
+        function initApp() {
+            updateLogos();
+            if (!appData.currentUser) {
+                renderLoginView();
+            } else {
+                renderMainApp();
+            }
+        }
+
+        function updateLogos() {
+            const sidebarLogo = document.getElementById('sidebar-logo');
+            const mobileLogo = document.getElementById('mobile-logo');
+            if (sidebarLogo) sidebarLogo.src = appData.settings.logo;
+            if (mobileLogo) mobileLogo.src = appData.settings.logo;
+        }
+
+        function renderMainApp() {
+            renderHeaderUser();
+            renderNavigation();
+            switchTab(currentTab);
+        }
+
+        function renderHeaderUser() {
+            const u = appData.currentUser;
+            if (!u) return;
+            document.getElementById('user-display-name').innerText = u.name || u.username;
+            document.getElementById('user-display-role').innerText = u.role;
+            document.getElementById('mobile-user-role').innerText = u.role;
+        }
+
+        function handleLogout() {
+            appData.currentUser = null;
+            saveData();
+            renderLoginView();
+        }
+
+        function renderLoginView() {
+            const content = document.getElementById('content-area');
+            const sidebar = document.getElementById('sidebar');
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (sidebar) sidebar.classList.add('hidden');
+            if (mobileMenu) mobileMenu.classList.add('hidden');
+
+            content.innerHTML = `
+                <div class="min-h-[85vh] flex items-center justify-center p-2">
+                    <div class="bg-white w-full max-w-md p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100">
+                        <div class="text-center mb-6">
+                            <img src="${appData.settings.logo}" class="w-20 h-20 mx-auto rounded-full p-1 bg-brand-50 border-2 border-brand-500 object-cover mb-3" alt="Logo Sekolah">
+                            <h2 class="text-xl font-bold text-slate-800">SISTEM UJIAN DIGITAL</h2>
+                            <p class="text-xs font-semibold text-brand-600 uppercase tracking-wider mt-1">${appData.settings.schoolName}</p>
+                        </div>
+
+                        <!-- Login Tabs -->
+                        <div class="flex bg-slate-100 p-1 rounded-xl mb-6 text-xs font-semibold">
+                            <button onclick="setLoginRole('admin')" id="tab-login-admin" class="flex-1 py-2 rounded-lg transition bg-white shadow text-brand-700">Admin</button>
+                            <button onclick="setLoginRole('guru')" id="tab-login-guru" class="flex-1 py-2 rounded-lg transition text-slate-500">Guru</button>
+                            <button onclick="setLoginRole('siswa')" id="tab-login-siswa" class="flex-1 py-2 rounded-lg transition text-slate-500">Siswa (NISN)</button>
+                        </div>
+
+                        <form id="login-form" onsubmit="processLogin(event)" class="space-y-4">
+                            <div id="login-fields">
+                                <!-- Dynamic fields injected -->
+                            </div>
+                            <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-xl font-semibold shadow-lg shadow-brand-500/30 transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-right-to-bracket"></i>
+                                <span>Masuk Aplikasi</span>
+                            </button>
+                        </form>
+
+                        <div class="mt-6 pt-4 border-t text-center text-xs text-slate-400">
+                            Default Admin: <span class="font-mono text-slate-600">MTsbuninagara</span> | Pass: <span class="font-mono text-slate-600">Dadan123</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            setLoginRole('admin');
+        }
+
+        let activeLoginRole = 'admin';
+        function setLoginRole(role) {
+            activeLoginRole = role;
+            ['admin', 'guru', 'siswa'].forEach(r => {
+                const btn = document.getElementById(`tab-login-${r}`);
+                if (btn) {
+                    if (r === role) {
+                        btn.className = "flex-1 py-2 rounded-lg transition bg-white shadow text-brand-700 font-bold";
+                    } else {
+                        btn.className = "flex-1 py-2 rounded-lg transition text-slate-500 font-medium";
+                    }
+                }
+            });
+
+            const fields = document.getElementById('login-fields');
+            if (role === 'admin') {
+                fields.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Username Admin</label>
+                        <input type="text" id="username" required placeholder="MTsbuninagara" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Password</label>
+                        <input type="password" id="password" required placeholder="Dadan123" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                    </div>
+                `;
+            } else if (role === 'guru') {
+                fields.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Username Guru</label>
+                        <input type="text" id="username" required placeholder="Masukkan Username Guru" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Password (NIP / Standard)</label>
+                        <input type="password" id="password" required placeholder="Masukkan Password" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                    </div>
+                `;
+            } else {
+                fields.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">NISN Siswa</label>
+                        <input type="text" id="username" required placeholder="Contoh: 0081234567" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Sandi (Tanggal Lahir: DDMMYYYY)</label>
+                        <input type="password" id="password" required placeholder="Contoh: 12052010" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:outline-none text-sm">
+                    </div>
+                `;
+            }
+        }
+
+        function processLogin(e) {
+            e.preventDefault();
+            const userVal = document.getElementById('username').value.trim();
+            const passVal = document.getElementById('password').value.trim();
+
+            if (activeLoginRole === 'admin') {
+                if (userVal === 'MTsbuninagara' && passVal === 'Dadan123') {
+                    appData.currentUser = { role: 'admin', name: 'Administrator MTs', username: 'MTsbuninagara' };
+                } else {
+                    alert("Gagal Login: Username/Password Admin Salah! (Sesuai Petunjuk: MTsbuninagara / Dadan123)");
+                    return;
+                }
+            } else if (activeLoginRole === 'guru') {
+                const found = appData.teachers.find(g => g.username === userVal);
+                if (found) {
+                    appData.currentUser = { role: 'guru', name: found.name, username: found.username, mapel: found.mapel, id: found.id };
+                } else {
+                    alert("Akun Guru Tidak Ditemukan! Silahkan hubungi Admin untuk Generate Akun.");
+                    return;
+                }
+            } else if (activeLoginRole === 'siswa') {
+                const student = appData.students.find(s => s.nisn === userVal && s.dob === passVal);
+                if (student) {
+                    appData.currentUser = { role: 'siswa', name: student.name, nisn: student.nisn, class: student.class, id: student.id };
+                } else {
+                    alert("NISN atau Tanggal Lahir (Sandi) Salah! Silahkan periksa kembali.");
+                    return;
+                }
+            }
+
+            saveData();
+            document.getElementById('sidebar').classList.remove('hidden');
+            document.getElementById('mobile-menu').classList.remove('hidden');
+            currentTab = 'dashboard';
+            renderMainApp();
+        }
+
+        function renderNavigation() {
+            if (!appData.currentUser) return;
+            const role = appData.currentUser.role;
+            const desktopNav = document.getElementById('desktop-menu');
+            const mobileNav = document.getElementById('mobile-menu');
+
+            let navItems = [];
+
+            if (role === 'admin') {
+                navItems = [
+                    { id: 'dashboard', label: 'Dashboard', icon: 'fa-house' },
+                    { id: 'guru', label: 'Data Guru', icon: 'fa-chalkboard-user' },
+                    { id: 'gen-guru', label: 'Generate Akun', icon: 'fa-key' },
+                    { id: 'siswa', label: 'Data Siswa', icon: 'fa-user-graduate' },
+                    { id: 'ujian', label: 'Ruang Ujian', icon: 'fa-file-signature' },
+                    { id: 'info', label: 'Info & Jadwal', icon: 'fa-calendar-days' },
+                    { id: 'rekap', label: 'Rekap Nilai', icon: 'fa-chart-simple' },
+                    { id: 'pengaturan', label: 'Pengaturan', icon: 'fa-gear' }
+                ];
+            } else if (role === 'guru') {
+                navItems = [
+                    { id: 'dashboard', label: 'Dashboard', icon: 'fa-house' },
+                    { id: 'ujian', label: 'Buat Soal/Ujian', icon: 'fa-file-pen' },
+                    { id: 'info', label: 'Jadwal Ujian', icon: 'fa-calendar-days' },
+                    { id: 'rekap', label: 'Rekap Nilai', icon: 'fa-chart-simple' }
+                ];
+            } else if (role === 'siswa') {
+                navItems = [
+                    { id: 'dashboard', label: 'Dashboard', icon: 'fa-house' },
+                    { id: 'siswa-ujian', label: 'Ruang Ujian Saya', icon: 'fa-pen-to-square' },
+                    { id: 'siswa-nilai', label: 'Hasil Nilai', icon: 'fa-award' }
+                ];
+            }
+
+            // Desktop Render
+            desktopNav.innerHTML = navItems.map(item => `
+                <button onclick="switchTab('${item.id}')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition ${currentTab === item.id ? 'bg-brand-600 text-white font-semibold shadow-md' : 'text-brand-100 hover:bg-brand-800'}">
+                    <i class="fa-solid ${item.icon} w-5 text-center"></i>
+                    <span>${item.label}</span>
+                </button>
+            `).join('');
+
+            // Mobile Render (Top 4-5 items)
+            mobileNav.innerHTML = navItems.slice(0, 5).map(item => `
+                <button onclick="switchTab('${item.id}')" class="flex-1 py-2 flex flex-col items-center gap-1 ${currentTab === item.id ? 'text-brand-600 font-bold' : 'text-slate-500'}">
+                    <i class="fa-solid ${item.icon} text-lg"></i>
+                    <span class="text-[10px] leading-none">${item.label}</span>
+                </button>
+            `).join('');
+        }
+
+        function switchTab(tabId) {
+            if (!appData.currentUser) {
+                renderLoginView();
+                return;
+            }
+            currentTab = tabId;
+            renderNavigation();
+            const content = document.getElementById('content-area');
+
+            switch(tabId) {
+                case 'dashboard': renderDashboard(content); break;
+                case 'guru': renderGuruView(content); break;
+                case 'gen-guru': renderGenGuruView(content); break;
+                case 'siswa': renderSiswaView(content); break;
+                case 'ujian': renderRuangUjianView(content); break;
+                case 'info': renderInfoUjianView(content); break;
+                case 'rekap': renderRekapNilaiView(content); break;
+                case 'pengaturan': renderPengaturanView(content); break;
+                case 'siswa-ujian': renderSiswaUjianView(content); break;
+                case 'siswa-nilai': renderSiswaNilaiView(content); break;
+                default: renderDashboard(content);
+            }
+        }
+
+        function renderDashboard(container) {
+            const u = appData.currentUser;
+            if (!u) {
+                renderLoginView();
+                return;
+            }
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Banner Selamat Datang -->
+                    <div class="bg-gradient-to-r from-brand-800 to-brand-600 rounded-3xl p-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="space-y-2 text-center md:text-left">
+                            <span class="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wider">Sistem Digital Ujian</span>
+                            <h1 class="text-xl md:text-2xl font-extrabold">Selamat Datang di Sistem Ujian Berbasis Digital MTs Buninagara</h1>
+                            <p class="text-brand-100 text-sm max-w-xl">Platform ujian online aman, fleksibel, dan transparan untuk meningkatkan mutu pendidikan santri/siswa MTs Buninagara.</p>
+                        </div>
+                        <img src="${appData.settings.logo}" class="w-24 h-24 rounded-2xl bg-white p-2 object-cover shadow-md hidden sm:block">
+                    </div>
+
+                    <!-- Ringkasan Statistik -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-chalkboard-user"></i></div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-medium">Total Guru</p>
+                                <p class="text-xl font-bold text-slate-800">${appData.teachers.length}</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-user-graduate"></i></div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-medium">Total Siswa</p>
+                                <p class="text-xl font-bold text-slate-800">${appData.students.length}</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-file-signature"></i></div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-medium">Ujian Aktif</p>
+                                <p class="text-xl font-bold text-slate-800">${appData.exams.filter(e => e.active).length}</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl font-bold"><i class="fa-solid fa-book-open"></i></div>
+                            <div>
+                                <p class="text-xs text-slate-500 font-medium">Mata Pelajaran</p>
+                                <p class="text-xl font-bold text-slate-800">${SUBJECTS.length}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Shortcuts -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+                        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <i class="fa-solid fa-bolt text-brand-600"></i>
+                            Akses Cepat
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            ${u.role === 'admin' ? `
+                                <button onclick="switchTab('guru')" class="p-3 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50 text-left transition flex items-center gap-3">
+                                    <i class="fa-solid fa-user-plus text-brand-600 text-lg"></i>
+                                    <span class="text-xs font-semibold">Kelola Data Guru</span>
+                                </button>
+                                <button onclick="switchTab('siswa')" class="p-3 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50 text-left transition flex items-center gap-3">
+                                    <i class="fa-solid fa-users text-brand-600 text-lg"></i>
+                                    <span class="text-xs font-semibold">Kelola Data Siswa</span>
+                                </button>
+                                <button onclick="switchTab('pengaturan')" class="p-3 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50 text-left transition flex items-center gap-3">
+                                    <i class="fa-solid fa-sliders text-brand-600 text-lg"></i>
+                                    <span class="text-xs font-semibold">Atur Kop & Logo</span>
+                                </button>
+                            ` : u.role === 'guru' ? `
+                                <button onclick="switchTab('ujian')" class="p-3 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50 text-left transition flex items-center gap-3">
+                                    <i class="fa-solid fa-circle-plus text-brand-600 text-lg"></i>
+                                    <span class="text-xs font-semibold">Buat Soal Ujian Baru</span>
+                                </button>
+                                <button onclick="switchTab('rekap')" class="p-3 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50 text-left transition flex items-center gap-3">
+                                    <i class="fa-solid fa-file-excel text-brand-600 text-lg"></i>
+                                    <span class="text-xs font-semibold">Unduh Hasil Nilai</span>
+                                </button>
+                            ` : `
+                                <button onclick="switchTab('siswa-ujian')" class="p-3 rounded-xl border border-slate-200 hover:border-brand-500 hover:bg-brand-50 text-left transition flex items-center gap-3">
+                                    <i class="fa-solid fa-pen-nib text-brand-600 text-lg"></i>
+                                    <span class="text-xs font-semibold">Mulai Kerjakan Ujian</span>
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderGuruView(container) {
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Data Guru Pengampu</h2>
+                            <p class="text-xs text-slate-500">Kelola guru dan pembagian Mata Pelajaran (Termasuk Mulok Bahasa Sunda & Nahwu)</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="downloadFormatGuruExcel()" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+                                <i class="fa-solid fa-file-arrow-down"></i> Format Excel
+                            </button>
+                            <button onclick="triggerUploadGuruExcel()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+                                <i class="fa-solid fa-file-arrow-up"></i> Upload Excel
+                            </button>
+                            <button onclick="openModalAddGuru()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow">
+                                <i class="fa-solid fa-plus"></i> Tambah Guru
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hidden File Input -->
+                    <input type="file" id="excel-guru-file" class="hidden" accept=".csv, .xlsx, .xls" onchange="handleExcelGuruUpload(event)">
+
+                    <!-- Data Table -->
+                    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 border-b border-slate-100 text-slate-500 text-xs uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">ID/NIP</th>
+                                    <th class="p-3">Nama Guru</th>
+                                    <th class="p-3">Mata Pelajaran Utama</th>
+                                    <th class="p-3 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${appData.teachers.length === 0 ? `
+                                    <tr><td colspan="4" class="p-4 text-center text-slate-400 text-xs">Belum ada data guru.</td></tr>
+                                ` : appData.teachers.map(g => `
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="p-3 font-mono text-xs text-slate-600">${g.nip || g.id}</td>
+                                        <td class="p-3 font-semibold text-slate-800">${g.name}</td>
+                                        <td class="p-3"><span class="bg-brand-50 text-brand-700 text-xs font-semibold px-2.5 py-1 rounded-lg border border-brand-200">${g.mapel}</span></td>
+                                        <td class="p-3 text-center space-x-1">
+                                            <button onclick="editGuru('${g.id}')" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs"><i class="fa-solid fa-pen"></i></button>
+                                            <button onclick="deleteGuru('${g.id}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function downloadFormatGuruExcel() {
+            const csvContent = "data:text/csv;charset=utf-8,NIP,Nama_Guru,Mata_Pelajaran\n198200000000,Contoh Guru S.Pd,Mulok: Ilmu Nahwu\n198300000000,Siti Sunda S.Pd,Mulok: Bahasa Sunda";
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Format_Data_Guru_MTs_Buninagara.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function triggerUploadGuruExcel() {
+            document.getElementById('excel-guru-file').click();
+        }
+
+        function handleExcelGuruUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const text = evt.target.result;
+                const lines = text.split('\n').slice(1);
+                let added = 0;
+                lines.forEach(line => {
+                    const cols = line.split(',');
+                    if (cols.length >= 3 && cols[1].trim()) {
+                        const name = cols[1].trim();
+                        const nip = cols[0].trim();
+                        const mapel = cols[2].trim();
+                        const username = name.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 12);
+                        appData.teachers.push({
+                            id: "G" + Date.now().toString().slice(-4),
+                            nip: nip,
+                            name: name,
+                            mapel: mapel,
+                            username: username
+                        });
+                        added++;
+                    }
+                });
+                saveData();
+                alert(`Berhasil mengimpor ${added} Data Guru!`);
+                switchTab('guru');
+            };
+            reader.readAsText(file);
+        }
+
+        function openModalAddGuru(guruId = null) {
+            const g = guruId ? appData.teachers.find(x => x.id === guruId) : { id: '', name: '', nip: '', mapel: SUBJECTS[0] };
+            const isEdit = !!guruId;
+
+            const modal = document.getElementById('modal-container');
+            const content = document.getElementById('modal-content');
+            modal.classList.remove('hidden');
+
+            content.innerHTML = `
+                <h3 class="text-base font-bold text-slate-800 mb-4">${isEdit ? 'Edit Data Guru' : 'Tambah Data Guru Baru'}</h3>
+                <form onsubmit="saveGuruForm(event, '${g.id}')" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold mb-1">NIP / ID Guru</label>
+                        <input type="text" id="g-nip" value="${g.nip}" placeholder="Masukkan NIP" class="w-full p-2.5 rounded-xl border border-slate-300">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Nama Lengkap & Gelar</label>
+                        <input type="text" id="g-name" value="${g.name}" required placeholder="Contoh: Dadan Hidayat, S.Pd.I" class="w-full p-2.5 rounded-xl border border-slate-300">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Mata Pelajaran Utama</label>
+                        <select id="g-mapel" class="w-full p-2.5 rounded-xl border border-slate-300">
+                            ${SUBJECTS.map(s => `<option value="${s}" ${g.mapel === s ? 'selected' : ''}>${s}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-4">
+                        <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-semibold">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-brand-600 text-white rounded-xl font-semibold shadow">Simpan</button>
+                    </div>
+                </form>
+            `;
+        }
+
+        function closeModal() {
+            document.getElementById('modal-container').classList.add('hidden');
+        }
+
+        function saveGuruForm(e, id) {
+            e.preventDefault();
+            const name = document.getElementById('g-name').value.trim();
+            const nip = document.getElementById('g-nip').value.trim();
+            const mapel = document.getElementById('g-mapel').value;
+            const username = name.toLowerCase().replace(/[^a-z0-9]/g, '_').substring(0, 12);
+
+            if (id) {
+                const idx = appData.teachers.findIndex(x => x.id === id);
+                if (idx !== -1) {
+                    appData.teachers[idx].name = name;
+                    appData.teachers[idx].nip = nip;
+                    appData.teachers[idx].mapel = mapel;
+                }
+            } else {
+                appData.teachers.push({
+                    id: "G" + Date.now().toString().slice(-4),
+                    nip: nip,
+                    name: name,
+                    mapel: mapel,
+                    username: username
+                });
+            }
+            saveData();
+            closeModal();
+            switchTab('guru');
+        }
+
+        function editGuru(id) { openModalAddGuru(id); }
+        function deleteGuru(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus data guru ini?")) {
+                appData.teachers = appData.teachers.filter(x => x.id !== id);
+                saveData();
+                switchTab('guru');
+            }
+        }
+
+        function renderGenGuruView(container) {
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Generate Akun Guru</h2>
+                            <p class="text-xs text-slate-500">Kredensial otomatis untuk masuk ke sistem ujian masing-masing guru pengampu mapel</p>
+                        </div>
+                        <button onclick="window.print()" class="bg-slate-800 text-white px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5">
+                            <i class="fa-solid fa-print"></i> Cetak Kredensial
+                        </button>
+                    </div>
+
+                    <div id="printable-area" class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto p-4">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 border-b text-slate-500 text-xs uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">Nama Guru</th>
+                                    <th class="p-3">Mata Pelajaran</th>
+                                    <th class="p-3">Username Login</th>
+                                    <th class="p-3">Password Default</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${appData.teachers.map(g => `
+                                    <tr>
+                                        <td class="p-3 font-semibold text-slate-800">${g.name}</td>
+                                        <td class="p-3 text-xs text-brand-700 font-medium">${g.mapel}</td>
+                                        <td class="p-3 font-mono text-xs bg-slate-50 rounded font-bold">${g.username}</td>
+                                        <td class="p-3 font-mono text-xs text-slate-500">${g.nip || 'mtsbuninagara'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSiswaView(container) {
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Data Siswa / Santri</h2>
+                            <p class="text-xs text-slate-500">Kelola NISN dan password tanggal lahir siswa untuk akses ujian online</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="downloadFormatSiswaExcel()" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-file-arrow-down"></i> Format Excel
+                            </button>
+                            <button onclick="triggerUploadSiswaExcel()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-file-arrow-up"></i> Upload Excel
+                            </button>
+                            <button onclick="openModalAddSiswa()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1 shadow">
+                                <i class="fa-solid fa-plus"></i> Tambah Siswa
+                            </button>
+                        </div>
+                    </div>
+
+                    <input type="file" id="excel-siswa-file" class="hidden" accept=".csv" onchange="handleExcelSiswaUpload(event)">
+
+                    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 border-b border-slate-100 text-slate-500 text-xs uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">NISN (Username)</th>
+                                    <th class="p-3">Nama Siswa</th>
+                                    <th class="p-3">Kelas</th>
+                                    <th class="p-3">Sandi (Tgl Lahir)</th>
+                                    <th class="p-3 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${appData.students.map(s => `
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="p-3 font-mono font-bold text-xs text-brand-700">${s.nisn}</td>
+                                        <td class="p-3 font-semibold text-slate-800">${s.name}</td>
+                                        <td class="p-3"><span class="bg-slate-100 px-2.5 py-1 rounded-lg text-xs font-semibold">${s.class}</span></td>
+                                        <td class="p-3 font-mono text-xs text-slate-500">${s.dob}</td>
+                                        <td class="p-3 text-center space-x-1">
+                                            <button onclick="editSiswa('${s.id}')" class="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs"><i class="fa-solid fa-pen"></i></button>
+                                            <button onclick="deleteSiswa('${s.id}')" class="p-1.5 bg-red-100 hover:bg-red-200 text-red-600 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function downloadFormatSiswaExcel() {
+            const csvContent = "data:text/csv;charset=utf-8,NISN,Nama_Siswa,Kelas,Sandi_TglLahir_DDMMYYYY\n0081122334,Ahmad Ridwan,7A,12052010\n0089988776,Siti Maryam,7B,20112010";
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "Format_Data_Siswa_MTs_Buninagara.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function triggerUploadSiswaExcel() { document.getElementById('excel-siswa-file').click(); }
+
+        function handleExcelSiswaUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const text = evt.target.result;
+                const lines = text.split('\n').slice(1);
+                let added = 0;
+                lines.forEach(line => {
+                    const cols = line.split(',');
+                    if (cols.length >= 4 && cols[0].trim()) {
+                        appData.students.push({
+                            id: "S" + Date.now().toString().slice(-4),
+                            nisn: cols[0].trim(),
+                            name: cols[1].trim(),
+                            class: cols[2].trim(),
+                            dob: cols[3].trim()
+                        });
+                        added++;
+                    }
+                });
+                saveData();
+                alert(`Berhasil mengimpor ${added} Data Siswa!`);
+                switchTab('siswa');
+            };
+            reader.readAsText(file);
+        }
+
+        function openModalAddSiswa(siswaId = null) {
+            const s = siswaId ? appData.students.find(x => x.id === siswaId) : { id: '', nisn: '', name: '', class: '7A', dob: '' };
+            const isEdit = !!siswaId;
+
+            const modal = document.getElementById('modal-container');
+            const content = document.getElementById('modal-content');
+            modal.classList.remove('hidden');
+
+            content.innerHTML = `
+                <h3 class="text-base font-bold text-slate-800 mb-4">${isEdit ? 'Edit Data Siswa' : 'Tambah Siswa Baru'}</h3>
+                <form onsubmit="saveSiswaForm(event, '${s.id}')" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold mb-1">NISN Siswa</label>
+                        <input type="text" id="s-nisn" value="${s.nisn}" required placeholder="Contoh: 0081234567" class="w-full p-2.5 rounded-xl border border-slate-300 font-mono">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Nama Lengkap Siswa</label>
+                        <input type="text" id="s-name" value="${s.name}" required placeholder="Contoh: Asep Ridwan" class="w-full p-2.5 rounded-xl border border-slate-300">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Kelas</label>
+                        <input type="text" id="s-class" value="${s.class}" required placeholder="Contoh: 7A / 8B / 9C" class="w-full p-2.5 rounded-xl border border-slate-300">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Sandi / Tanggal Lahir (DDMMYYYY)</label>
+                        <input type="text" id="s-dob" value="${s.dob}" required placeholder="Contoh: 12052010" class="w-full p-2.5 rounded-xl border border-slate-300 font-mono">
+                    </div>
+                    <div class="flex justify-end gap-2 pt-4">
+                        <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-semibold">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-brand-600 text-white rounded-xl font-semibold shadow">Simpan</button>
+                    </div>
+                </form>
+            `;
+        }
+
+        function saveSiswaForm(e, id) {
+            e.preventDefault();
+            const nisn = document.getElementById('s-nisn').value.trim();
+            const name = document.getElementById('s-name').value.trim();
+            const cls = document.getElementById('s-class').value.trim();
+            const dob = document.getElementById('s-dob').value.trim();
+
+            if (id) {
+                const idx = appData.students.findIndex(x => x.id === id);
+                if (idx !== -1) {
+                    appData.students[idx] = { id, nisn, name, class: cls, dob };
+                }
+            } else {
+                appData.students.push({ id: "S" + Date.now().toString().slice(-4), nisn, name, class: cls, dob });
+            }
+            saveData();
+            closeModal();
+            switchTab('siswa');
+        }
+
+        function editSiswa(id) { openModalAddSiswa(id); }
+        function deleteSiswa(id) {
+            if (confirm("Hapus data siswa ini?")) {
+                appData.students = appData.students.filter(x => x.id !== id);
+                saveData();
+                switchTab('siswa');
+            }
+        }
+
+        function renderRuangUjianView(container) {
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Ruang Ujian & Bank Soal</h2>
+                            <p class="text-xs text-slate-500">Buat soal pilihan ganda (PG) & essay, atur KKM, serta durasi waktu</p>
+                        </div>
+                        <button onclick="openModalCreateExam()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow">
+                            <i class="fa-solid fa-plus-circle"></i> Buat Paket Ujian
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${appData.exams.map(e => `
+                            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between space-y-3">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="bg-brand-50 text-brand-700 text-[11px] font-bold px-2.5 py-1 rounded-lg border border-brand-200">${e.subject}</span>
+                                        <span class="${e.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'} text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                                            ${e.active ? 'Aktif' : 'Non-Aktif'}
+                                        </span>
+                                    </div>
+                                    <h3 class="font-bold text-slate-800 text-base">${e.title}</h3>
+                                    <div class="flex items-center gap-4 text-xs text-slate-500 mt-2 flex-wrap">
+                                        <span><i class="fa-regular fa-clock text-brand-600"></i> ${e.duration} Menit</span>
+                                        <span><i class="fa-solid fa-bullseye text-brand-600"></i> KKM: ${e.kkm}</span>
+                                        <span><i class="fa-solid fa-key text-amber-600"></i> Token: <strong class="font-mono text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">${e.token || 'NAHWU7'}</strong></span>
+                                        <span><i class="fa-solid fa-list-check text-brand-600"></i> ${e.questions.length} Soal</span>
+                                    </div>
+                                </div>
+                                <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                                    <button onclick="toggleExamActive('${e.id}')" class="text-xs font-bold ${e.active ? 'text-amber-600 hover:underline' : 'text-emerald-600 hover:underline'}">
+                                        ${e.active ? 'Nonaktifkan' : 'Aktifkan Ujian'}
+                                    </button>
+                                    <div class="flex gap-2">
+                                        <button onclick="manageQuestions('${e.id}')" class="bg-brand-50 hover:bg-brand-100 text-brand-700 px-3 py-1.5 rounded-lg text-xs font-semibold">
+                                            <i class="fa-solid fa-file-pen"></i> Kelola Soal
+                                        </button>
+                                        <button onclick="deleteExam('${e.id}')" class="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function openModalCreateExam() {
+            const modal = document.getElementById('modal-container');
+            const content = document.getElementById('modal-content');
+            modal.classList.remove('hidden');
+
+            content.innerHTML = `
+                <h3 class="text-base font-bold text-slate-800 mb-4">Buat Paket Ujian Baru</h3>
+                <form onsubmit="saveExamForm(event)" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold mb-1">Judul Ujian</label>
+                        <input type="text" id="ex-title" required placeholder="Contoh: STS Ilmu Nahwu Kelas 7" class="w-full p-2.5 rounded-xl border border-slate-300">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Mata Pelajaran</label>
+                        <select id="ex-subject" class="w-full p-2.5 rounded-xl border border-slate-300">
+                            ${SUBJECTS.map(s => `<option value="${s}">${s}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="block font-bold mb-1">Durasi (Menit)</label>
+                            <input type="number" id="ex-duration" value="60" required class="w-full p-2.5 rounded-xl border border-slate-300">
+                        </div>
+                        <div>
+                            <label class="block font-bold mb-1">Nilai KKM</label>
+                            <input type="number" id="ex-kkm" value="75" required class="w-full p-2.5 rounded-xl border border-slate-300">
+                        </div>
+                        <div>
+                            <label class="block font-bold mb-1">Token Ujian</label>
+                            <input type="text" id="ex-token" placeholder="Misal: NHW01" class="w-full p-2.5 rounded-xl border border-slate-300 uppercase font-mono font-bold">
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-4">
+                        <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-semibold">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-brand-600 text-white rounded-xl font-semibold shadow">Simpan & Lanjut Buat Soal</button>
+                    </div>
+                </form>
+            `;
+        }
+
+        function saveExamForm(e) {
+            e.preventDefault();
+            const rawToken = document.getElementById('ex-token').value.trim().toUpperCase();
+            const genToken = rawToken || Math.random().toString(36).substring(2, 7).toUpperCase();
+            const newExam = {
+                id: "EX" + Date.now().toString().slice(-4),
+                title: document.getElementById('ex-title').value,
+                subject: document.getElementById('ex-subject').value,
+                duration: parseInt(document.getElementById('ex-duration').value),
+                kkm: parseInt(document.getElementById('ex-kkm').value),
+                token: genToken,
+                active: true,
+                questions: []
+            };
+            appData.exams.push(newExam);
+            saveData();
+            closeModal();
+            manageQuestions(newExam.id);
+        }
+
+        function toggleExamActive(id) {
+            const ex = appData.exams.find(x => x.id === id);
+            if (ex) ex.active = !ex.active;
+            saveData();
+            switchTab('ujian');
+        }
+
+        function deleteExam(id) {
+            if (confirm("Hapus ujian ini beserta soal di dalamnya?")) {
+                appData.exams = appData.exams.filter(x => x.id !== id);
+                saveData();
+                switchTab('ujian');
+            }
+        }
+
+        function manageQuestions(examId) {
+            const ex = appData.exams.find(x => x.id === examId);
+            const container = document.getElementById('content-area');
+
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
+                        <div>
+                            <button onclick="switchTab('ujian')" class="text-xs text-brand-600 font-bold hover:underline mb-1 flex items-center gap-1">
+                                <i class="fa-solid fa-arrow-left"></i> Kembali ke Daftar Ujian
+                            </button>
+                            <h2 class="text-lg font-bold text-slate-800">${ex.title}</h2>
+                            <p class="text-xs text-slate-500">${ex.subject} | KKM: ${ex.kkm} | Durasi: ${ex.duration} Mins</p>
+                        </div>
+                        <button onclick="openModalAddQuestion('${ex.id}')" class="bg-brand-600 text-white px-3 py-2 rounded-xl text-xs font-semibold shadow">
+                            <i class="fa-solid fa-plus"></i> Tambah Soal
+                        </button>
+                    </div>
+
+                    <!-- Soal List -->
+                    <div class="space-y-3">
+                        ${ex.questions.length === 0 ? `
+                            <div class="bg-white p-8 text-center rounded-2xl text-slate-400 text-xs">Belum ada soal. Klik 'Tambah Soal' di atas.</div>
+                        ` : ex.questions.map((q, idx) => `
+                            <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="bg-slate-100 text-slate-700 text-xs font-bold px-2.5 py-0.5 rounded">Soal No. ${idx + 1} (${q.type})</span>
+                                    <button onclick="deleteQuestion('${ex.id}', ${q.id})" class="text-red-500 hover:text-red-700 text-xs font-semibold">Hapus</button>
+                                </div>
+                                <p class="text-sm font-semibold text-slate-800">${q.question}</p>
+                                ${q.type === 'PG' ? `
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
+                                        ${q.options.map((opt, oIdx) => `
+                                            <div class="p-2 rounded-xl border text-xs ${q.answer === oIdx ? 'bg-emerald-50 border-emerald-500 font-bold text-emerald-800' : 'bg-slate-50 border-slate-200 text-slate-600'}">
+                                                ${String.fromCharCode(65 + oIdx)}. ${opt}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : `
+                                    <div class="p-2 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 mt-2">
+                                        <span class="font-bold">Kunci/Rubrik Essay:</span> ${q.answerKey}
+                                    </div>
+                                `}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function openModalAddQuestion(examId) {
+            const modal = document.getElementById('modal-container');
+            const content = document.getElementById('modal-content');
+            modal.classList.remove('hidden');
+
+            content.innerHTML = `
+                <h3 class="text-base font-bold text-slate-800 mb-3">Tambah Soal Baru</h3>
+                <form onsubmit="saveQuestionForm(event, '${examId}')" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold mb-1">Tipe Soal</label>
+                        <select id="q-type" onchange="toggleOptionFields(this.value)" class="w-full p-2.5 rounded-xl border border-slate-300">
+                            <option value="PG">Pilihan Ganda (PG)</option>
+                            <option value="Essay">Essay / Isian</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Pertanyaan / Pertanyaan Ujian</label>
+                        <textarea id="q-text" required rows="3" class="w-full p-2.5 rounded-xl border border-slate-300" placeholder="Tuliskan pertanyaan di sini..."></textarea>
+                    </div>
+
+                    <!-- Options for PG -->
+                    <div id="pg-fields" class="space-y-2">
+                        <label class="block font-bold">Pilihan Jawaban (Tandai Jawaban Benar)</label>
+                        ${[0,1,2,3].map(i => `
+                            <div class="flex items-center gap-2">
+                                <input type="radio" name="pg-correct" value="${i}" ${i === 0 ? 'checked' : ''}>
+                                <span class="font-bold text-slate-600">${String.fromCharCode(65 + i)}.</span>
+                                <input type="text" id="opt-${i}" placeholder="Pilihan ${String.fromCharCode(65 + i)}" class="flex-1 p-2 rounded-lg border border-slate-300">
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- Essay Answer Key -->
+                    <div id="essay-fields" class="hidden">
+                        <label class="block font-bold mb-1">Kunci Jawaban / Catatan Penilaian</label>
+                        <textarea id="q-essay-key" rows="2" class="w-full p-2 rounded-lg border border-slate-300" placeholder="Masukkan kunci jawaban ringkas..."></textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-3">
+                        <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-semibold">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-brand-600 text-white rounded-xl font-semibold shadow">Simpan Soal</button>
+                    </div>
+                </form>
+            `;
+        }
+
+        function toggleOptionFields(val) {
+            if (val === 'PG') {
+                document.getElementById('pg-fields').classList.remove('hidden');
+                document.getElementById('essay-fields').classList.add('hidden');
+            } else {
+                document.getElementById('pg-fields').classList.add('hidden');
+                document.getElementById('essay-fields').classList.remove('hidden');
+            }
+        }
+
+        function saveQuestionForm(e, examId) {
+            e.preventDefault();
+            const ex = appData.exams.find(x => x.id === examId);
+            const type = document.getElementById('q-type').value;
+            const qText = document.getElementById('q-text').value;
+
+            if (type === 'PG') {
+                const options = [
+                    document.getElementById('opt-0').value,
+                    document.getElementById('opt-1').value,
+                    document.getElementById('opt-2').value,
+                    document.getElementById('opt-3').value
+                ];
+                const correct = parseInt(document.querySelector('input[name="pg-correct"]:checked').value);
+                ex.questions.push({ id: Date.now(), type: 'PG', question: qText, options: options, answer: correct });
+            } else {
+                const essayKey = document.getElementById('q-essay-key').value;
+                ex.questions.push({ id: Date.now(), type: 'Essay', question: qText, answerKey: essayKey });
+            }
+
+            saveData();
+            closeModal();
+            manageQuestions(examId);
+        }
+
+        function deleteQuestion(examId, qId) {
+            const ex = appData.exams.find(x => x.id === examId);
+            ex.questions = ex.questions.filter(q => q.id !== qId);
+            saveData();
+            manageQuestions(examId);
+        }
+
+        function renderInfoUjianView(container) {
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Info & Penjadwalan Ujian</h2>
+                            <p class="text-xs text-slate-500">Atur tanggal pelaksanaan dan penunjukan Pengawas Ujian</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 border-b text-slate-500 text-xs uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">Mata Pelajaran / Judul</th>
+                                    <th class="p-3">Tanggal & Waktu</th>
+                                    <th class="p-3">Pengawas Ujian</th>
+                                    <th class="p-3 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${appData.exams.map(e => `
+                                    <tr>
+                                        <td class="p-3">
+                                            <p class="font-bold text-slate-800">${e.title}</p>
+                                            <span class="text-xs text-brand-600 font-semibold">${e.subject}</span>
+                                        </td>
+                                        <td class="p-3 text-xs text-slate-600">
+                                            <i class="fa-solid fa-calendar text-brand-600"></i> ${e.date || 'Belum diatur'}<br>
+                                            <i class="fa-solid fa-clock text-brand-600"></i> ${e.time || '08:00 WIB'}
+                                        </td>
+                                        <td class="p-3 text-xs font-semibold text-slate-700">
+                                            <i class="fa-solid fa-user-shield text-emerald-600"></i> ${e.proctor || 'Belum Ditentukan'}
+                                        </td>
+                                        <td class="p-3 text-center">
+                                            <button onclick="openModalSchedule('${e.id}')" class="bg-brand-50 text-brand-700 hover:bg-brand-100 px-3 py-1.5 rounded-lg text-xs font-semibold">
+                                                Atur Jadwal & Pengawas
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openModalSchedule(examId) {
+            const ex = appData.exams.find(x => x.id === examId);
+            const modal = document.getElementById('modal-container');
+            const content = document.getElementById('modal-content');
+            modal.classList.remove('hidden');
+
+            content.innerHTML = `
+                <h3 class="text-base font-bold text-slate-800 mb-3">Atur Jadwal & Pengawas Ujian</h3>
+                <form onsubmit="saveScheduleForm(event, '${ex.id}')" class="space-y-3 text-xs">
+                    <div>
+                        <label class="block font-bold mb-1">Tanggal Ujian</label>
+                        <input type="date" id="sch-date" value="${ex.date || ''}" required class="w-full p-2.5 rounded-xl border border-slate-300">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Waktu / Jam (Contoh: 08:00 - 09:30)</label>
+                        <input type="text" id="sch-time" value="${ex.time || ''}" required placeholder="08:00 - 09:30 WIB" class="w-full p-2.5 rounded-xl border border-slate-300">
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1">Pengawas Ujian</label>
+                        <select id="sch-proctor" class="w-full p-2.5 rounded-xl border border-slate-300">
+                            ${appData.teachers.map(g => `<option value="${g.name}" ${ex.proctor === g.name ? 'selected' : ''}>${g.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-3">
+                        <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-semibold">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-brand-600 text-white rounded-xl font-semibold shadow">Simpan Jadwal</button>
+                    </div>
+                </form>
+            `;
+        }
+
+        function saveScheduleForm(e, examId) {
+            e.preventDefault();
+            const ex = appData.exams.find(x => x.id === examId);
+            ex.date = document.getElementById('sch-date').value;
+            ex.time = document.getElementById('sch-time').value;
+            ex.proctor = document.getElementById('sch-proctor').value;
+            saveData();
+            closeModal();
+            switchTab('info');
+        }
+
+        function renderRekapNilaiView(container) {
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Rekap Nilai Ujian</h2>
+                            <p class="text-xs text-slate-500">Laporan resmi nilai dilengkapi Kop Surat & Tanda Tangan Guru Pengampu + Pengawas</p>
+                        </div>
+                        <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 shadow">
+                            <i class="fa-solid fa-print"></i> Cetak / Unduh Laporan
+                        </button>
+                    </div>
+
+                    <!-- Printable Official Document Area -->
+                    <div id="printable-area" class="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+                        
+                        <!-- OFFICIAL KOP SURAT SEKOLAH -->
+                        <div class="border-b-4 border-double border-slate-800 pb-4 flex items-center gap-4 text-center">
+                            <img src="${appData.settings.logo}" class="w-20 h-20 object-cover" alt="Logo Sekolah">
+                            <div class="flex-1">
+                                <h1 class="font-extrabold text-base md:text-lg text-slate-900 tracking-wide uppercase leading-tight">${appData.settings.kopHeader.split('\n')[0] || ''}</h1>
+                                <h2 class="font-bold text-sm text-slate-800 uppercase">${appData.settings.kopHeader.split('\n')[1] || ''}</h2>
+                                <h3 class="font-black text-xl text-brand-800 uppercase mt-0.5">${appData.settings.schoolName}</h3>
+                                <p class="text-[11px] text-slate-600 italic mt-1">${appData.settings.address} | NSM: ${appData.settings.nsm}</p>
+                            </div>
+                        </div>
+
+                        <div class="text-center space-y-1">
+                            <h3 class="font-bold text-base underline uppercase">REKAPITULASI HASIL UJIAN DIGITAL</h3>
+                            <p class="text-xs text-slate-600">Tahun Ajaran 2026/2027</p>
+                        </div>
+
+                        <!-- Table Rekap -->
+                        <table class="w-full text-left text-xs border-collapse border border-slate-300">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700 border-b border-slate-300 font-bold">
+                                    <th class="p-2 border border-slate-300 text-center">No</th>
+                                    <th class="p-2 border border-slate-300">NISN</th>
+                                    <th class="p-2 border border-slate-300">Nama Siswa</th>
+                                    <th class="p-2 border border-slate-300">Mata Pelajaran</th>
+                                    <th class="p-2 border border-slate-300 text-center">Nilai PG</th>
+                                    <th class="p-2 border border-slate-300 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${appData.results.length === 0 ? `
+                                    <tr><td colspan="6" class="p-4 text-center text-slate-400 italic">Belum ada data pengerjaan ujian.</td></tr>
+                                ` : appData.results.map((r, i) => `
+                                    <tr>
+                                        <td class="p-2 border border-slate-300 text-center">${i + 1}</td>
+                                        <td class="p-2 border border-slate-300 font-mono">${r.nisn}</td>
+                                        <td class="p-2 border border-slate-300 font-bold">${r.studentName}</td>
+                                        <td class="p-2 border border-slate-300">${r.subject}</td>
+                                        <td class="p-2 border border-slate-300 text-center font-bold">${r.score}</td>
+                                        <td class="p-2 border border-slate-300 text-center">
+                                            <span class="${r.score >= 75 ? 'text-emerald-700 font-bold' : 'text-red-600 font-bold'}">
+                                                ${r.score >= 75 ? 'LULUS (KKM)' : 'REMEDIAL'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+
+                        <!-- TANDA TANGAN BUKTI FISIK -->
+                        <div class="pt-8 grid grid-cols-2 text-center text-xs text-slate-800">
+                            <div class="space-y-12">
+                                <p>Pengawas Ujian,</p>
+                                <div class="font-bold underline uppercase">( ............................................ )</div>
+                                <p class="text-[10px] text-slate-500">NIP. ........................................</p>
+                            </div>
+                            <div class="space-y-12">
+                                <p>Buninagara, ${new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}<br>Guru Pengampu,</p>
+                                <div class="font-bold underline uppercase">${(appData.currentUser && appData.currentUser.name) || 'Dadan Hidayat, S.Pd.I'}</div>
+                                <p class="text-[10px] text-slate-500">NIP. 19780512 200501 1 003</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPengaturanView(container) {
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <h2 class="text-lg font-bold text-slate-800">Pengaturan Akun & Sekolah</h2>
+                        <p class="text-xs text-slate-500">Atur Logo Sekolah (JPG/PNG), Kop Surat, Alamat, dan Kepala Sekolah</p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4 max-w-2xl">
+                        <form onsubmit="saveSettingsForm(event)" class="space-y-4 text-xs">
+                            
+                            <!-- Logo Upload -->
+                            <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <img id="preview-logo" src="${appData.settings.logo}" class="w-16 h-16 rounded-full object-cover border-2 border-brand-500 bg-white p-1">
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1">Logo Sekolah (PNG/JPG)</label>
+                                    <input type="file" accept="image/*" onchange="handleLogoUpload(event)" class="text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-bold mb-1">Nama Sekolah</label>
+                                <input type="text" id="set-school" value="${appData.settings.schoolName}" required class="w-full p-2.5 rounded-xl border border-slate-300">
+                            </div>
+
+                            <div>
+                                <label class="block font-bold mb-1">Header Kop Surat (Gunakan Baris Baru)</label>
+                                <textarea id="set-kop" rows="3" required class="w-full p-2.5 rounded-xl border border-slate-300 font-mono text-xs">${appData.settings.kopHeader}</textarea>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block font-bold mb-1">NSM Sekolah</label>
+                                    <input type="text" id="set-nsm" value="${appData.settings.nsm}" required class="w-full p-2.5 rounded-xl border border-slate-300">
+                                </div>
+                                <div>
+                                    <label class="block font-bold mb-1">Kepala Sekolah</label>
+                                    <input type="text" id="set-principal" value="${appData.settings.principal}" required class="w-full p-2.5 rounded-xl border border-slate-300">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-bold mb-1">Alamat Lengkap Sekolah</label>
+                                <input type="text" id="set-address" value="${appData.settings.address}" required class="w-full p-2.5 rounded-xl border border-slate-300">
+                            </div>
+
+                            <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-xl font-bold transition shadow">
+                                Simpan Perubahan Pengaturan
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleLogoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                appData.settings.logo = evt.target.result;
+                document.getElementById('preview-logo').src = evt.target.result;
+                updateLogos();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function saveSettingsForm(e) {
+            e.preventDefault();
+            appData.settings.schoolName = document.getElementById('set-school').value;
+            appData.settings.kopHeader = document.getElementById('set-kop').value;
+            appData.settings.nsm = document.getElementById('set-nsm').value;
+            appData.settings.principal = document.getElementById('set-principal').value;
+            appData.settings.address = document.getElementById('set-address').value;
+            saveData();
+            alert("Pengaturan Sekolah Berhasil Disimpan!");
+            switchTab('pengaturan');
+        }
+
+        function renderSiswaUjianView(container) {
+            const activeExams = appData.exams.filter(e => e.active);
+
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <h2 class="text-lg font-bold text-slate-800">Ruang Ujian Saya</h2>
+                        <p class="text-xs text-slate-500">Pilih ujian yang sedang berlangsung di bawah ini</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${activeExams.length === 0 ? `
+                            <div class="col-span-2 bg-white p-8 text-center rounded-2xl text-slate-400 text-xs">
+                                Tidak ada ujian yang sedang aktif saat ini.
+                            </div>
+                        ` : activeExams.map(e => `
+                            <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-3">
+                                <div>
+                                    <span class="bg-brand-50 text-brand-700 text-xs font-bold px-2.5 py-0.5 rounded">${e.subject}</span>
+                                    <h3 class="font-bold text-slate-800 text-base mt-1">${e.title}</h3>
+                                    <p class="text-xs text-slate-500 mt-1"><i class="fa-regular fa-clock"></i> Durasi: ${e.duration} Menit | KKM: ${e.kkm}</p>
+                                </div>
+                                <button onclick="openStudentTokenModal('${e.id}')" class="w-full bg-brand-600 hover:bg-brand-700 text-white py-2.5 rounded-xl text-xs font-bold shadow flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-pen-to-square"></i> Masuk & Verifikasi Token
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function openStudentTokenModal(examId) {
+            const ex = appData.exams.find(x => x.id === examId);
+            if (!ex || ex.questions.length === 0) {
+                alert("Ujian ini belum memiliki soal!");
+                return;
+            }
+
+            const u = appData.currentUser || {};
+            const modal = document.getElementById('modal-container');
+            const content = document.getElementById('modal-content');
+            modal.classList.remove('hidden');
+
+            content.innerHTML = `
+                <div class="space-y-4">
+                    <div class="text-center border-b pb-3">
+                        <span class="bg-brand-100 text-brand-800 text-xs font-bold px-2.5 py-1 rounded-full uppercase">${ex.subject}</span>
+                        <h3 class="text-base font-bold text-slate-800 mt-2">${ex.title}</h3>
+                        <p class="text-xs text-slate-500">Konfirmasi Data Peserta & Token Ujian</p>
+                    </div>
+
+                    <form onsubmit="verifyExamTokenAndStart(event, '${ex.id}')" class="space-y-3 text-xs">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Nama Lengkap Siswa</label>
+                            <input type="text" id="token-student-name" value="${u.name || ''}" required class="w-full p-2.5 rounded-xl border border-slate-300 font-semibold">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">NISN / No. Peserta</label>
+                                <input type="text" id="token-student-nisn" value="${u.nisn || ''}" required class="w-full p-2.5 rounded-xl border border-slate-300 font-mono">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Kelas</label>
+                                <input type="text" id="token-student-class" value="${u.class || '7A'}" required class="w-full p-2.5 rounded-xl border border-slate-300">
+                            </div>
+                        </div>
+
+                        <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 mt-2">
+                            <label class="block font-extrabold text-amber-900 mb-1"><i class="fa-solid fa-key"></i> Masukkan Token Ujian</label>
+                            <input type="text" id="token-input" required placeholder="Masukkan 5 karakter token dari guru" class="w-full p-2.5 rounded-xl border border-amber-300 font-mono font-bold text-center text-lg uppercase tracking-widest bg-white focus:ring-2 focus:ring-amber-500">
+                            <p class="text-[10px] text-amber-700 mt-1">*Minta token ujian kepada guru/pengawas ruang ujian.</p>
+                        </div>
+
+                        <div id="token-error-msg" class="hidden text-red-600 font-bold text-center p-2 bg-red-50 rounded-lg text-xs"></div>
+
+                        <div class="flex justify-end gap-2 pt-2">
+                            <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl font-semibold">Batal</button>
+                            <button type="submit" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold shadow flex items-center gap-2">
+                                <i class="fa-solid fa-play"></i> Mulai Kerjakan Ujian
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+        }
+
+        function verifyExamTokenAndStart(e, examId) {
+            e.preventDefault();
+            const ex = appData.exams.find(x => x.id === examId);
+            const inputToken = document.getElementById('token-input').value.trim().toUpperCase();
+            const errorElem = document.getElementById('token-error-msg');
+
+            const expectedToken = (ex.token || 'NAHWU7').toUpperCase();
+
+            if (inputToken !== expectedToken) {
+                errorElem.classList.remove('hidden');
+                errorElem.innerText = "TOKEN UJIAN SALAH! Silahkan tanyakan token yang benar kepada Pengawas / Guru.";
+                return;
+            }
+
+            const studentDetails = {
+                name: document.getElementById('token-student-name').value.trim(),
+                nisn: document.getElementById('token-student-nisn').value.trim(),
+                class: document.getElementById('token-student-class').value.trim()
+            };
+
+            closeModal();
+            startStudentTest(examId, studentDetails);
+        }
+
+        let activeExamStudentDetails = null;
+        let currentStudentAnswers = {};
+        let examTimerInterval = null;
+        let activeExamRef = null;
+
+        function startStudentTest(examId, studentDetails = null) {
+            const ex = appData.exams.find(x => x.id === examId);
+            if (!ex || ex.questions.length === 0) {
+                alert("Ujian ini belum memiliki soal!");
+                return;
+            }
+
+            activeExamRef = ex;
+
+            if (studentDetails) {
+                activeExamStudentDetails = studentDetails;
+            } else {
+                activeExamStudentDetails = {
+                    name: appData.currentUser ? appData.currentUser.name : 'Siswa',
+                    nisn: appData.currentUser ? appData.currentUser.nisn : '',
+                    class: appData.currentUser ? appData.currentUser.class : ''
+                };
+            }
+
+            currentStudentAnswers = {};
+            let timeLeftSeconds = ex.duration * 60;
+
+            const container = document.getElementById('content-area');
+            container.innerHTML = `
+                <div class="space-y-4 max-w-5xl mx-auto pb-12">
+                    <!-- Exam Sticky Header Bar -->
+                    <div class="bg-brand-900 text-white p-4 rounded-2xl shadow-xl flex flex-wrap items-center justify-between gap-3 sticky top-14 z-30 border border-brand-700">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="bg-brand-700 text-yellow-300 text-[10px] font-bold px-2 py-0.5 rounded uppercase">${ex.subject}</span>
+                                <span id="progress-badge" class="bg-white/20 text-white text-[10px] font-semibold px-2 py-0.5 rounded">0 / ${ex.questions.length} Terjawab</span>
+                            </div>
+                            <h3 class="font-bold text-sm md:text-base leading-tight mt-1 text-white">${ex.title}</h3>
+                        </div>
+                        
+                        <!-- Timer Box -->
+                        <div id="timer-box" class="bg-brand-800 px-4 py-2 rounded-xl border border-brand-700 text-center flex items-center gap-3 transition-colors">
+                            <i class="fa-solid fa-stopwatch text-yellow-300 text-lg"></i>
+                            <div class="text-left">
+                                <p class="text-[9px] text-brand-200 uppercase font-bold tracking-wider">Sisa Waktu</p>
+                                <p id="timer-display" class="font-mono text-base font-extrabold text-yellow-300 leading-tight">00:00:00</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Grid: Questions & Navigation Bar -->
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+                        
+                        <!-- QUESTION LIST (Left / Main Column) -->
+                        <div class="lg:col-span-3 space-y-4">
+                            ${ex.questions.map((q, idx) => `
+                                <div id="q-card-${idx}" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 scroll-mt-28 transition-all">
+                                    <div class="flex items-center justify-between border-b pb-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="bg-brand-600 text-white text-xs font-bold px-3 py-1 rounded-lg">Soal No. ${idx + 1}</span>
+                                            <span id="status-badge-${idx}" class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">Belum Diisi</span>
+                                        </div>
+                                        <span class="text-[10px] font-semibold text-slate-400 uppercase bg-slate-50 px-2 py-0.5 rounded border border-slate-200">${q.type}</span>
+                                    </div>
+                                    <p class="text-sm font-medium text-slate-800 leading-relaxed pt-1">${q.question}</p>
+
+                                    ${q.type === 'PG' ? `
+                                        <div class="space-y-2 pt-2">
+                                            ${q.options.map((opt, oIdx) => `
+                                                <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:bg-brand-50/60 cursor-pointer transition text-xs font-medium bg-slate-50/50">
+                                                    <input type="radio" name="ans-${q.id}" value="${oIdx}" onchange="saveAnswer(${q.id}, ${oIdx}, ${idx})" class="text-brand-600 focus:ring-brand-500 w-4 h-4">
+                                                    <span><strong class="text-slate-700">${String.fromCharCode(65 + oIdx)}.</strong> ${opt}</span>
+                                                </label>
+                                            `).join('')}
+                                        </div>
+                                    ` : `
+                                        <div class="pt-2">
+                                            <textarea oninput="saveAnswer(${q.id}, this.value, ${idx})" rows="4" class="w-full p-3 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-brand-500 focus:outline-none" placeholder="Ketikkan jawaban essay Anda di sini..."></textarea>
+                                        </div>
+                                    `}
+                                </div>
+                            `).join('')}
+
+                            <!-- Submit Button Card -->
+                            <div class="p-5 bg-white rounded-2xl border border-slate-200 shadow-sm text-center">
+                                <p class="text-xs text-slate-500 mb-3">Pastikan semua nomor soal telah dijawab dengan hijau sebelum menekan tombol selesai.</p>
+                                <button onclick="submitExamAnswers('${ex.id}')" class="w-full md:w-auto px-8 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2 mx-auto">
+                                    <i class="fa-solid fa-paper-plane"></i> Selesai & Kirim Jawaban Ujian
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- QUESTION NAVIGATION BAR / PALETTE (Right / Sticky Panel) -->
+                        <div class="lg:col-span-1 lg:sticky lg:top-36 space-y-4">
+                            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                                <div class="flex items-center justify-between border-b pb-2">
+                                    <h4 class="font-bold text-xs text-slate-800 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-grip text-brand-600"></i> Navigasi Soal
+                                    </h4>
+                                    <span id="nav-summary" class="text-[10px] text-slate-500 font-semibold">0/${ex.questions.length}</span>
+                                </div>
+
+                                <!-- Legend -->
+                                <div class="flex items-center justify-around text-[10px] bg-slate-50 p-2 rounded-xl border border-slate-100">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-3 h-3 rounded bg-emerald-600 inline-block"></span>
+                                        <span class="text-slate-600">Sudah</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-3 h-3 rounded bg-slate-200 border border-slate-300 inline-block"></span>
+                                        <span class="text-slate-600">Belum</span>
+                                    </div>
+                                </div>
+
+                                <!-- Number Grid -->
+                                <div class="grid grid-cols-5 gap-2 pt-1 max-h-64 overflow-y-auto p-1" id="question-nav-grid">
+                                    ${ex.questions.map((q, idx) => `
+                                        <button id="nav-btn-${idx}" onclick="scrollToQuestion(${idx})" class="h-9 rounded-xl text-xs font-bold border transition-all flex items-center justify-center bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200">
+                                            ${idx + 1}
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            `;
+
+            updateQuestionNav();
+
+            if (examTimerInterval) clearInterval(examTimerInterval);
+            examTimerInterval = setInterval(() => {
+                timeLeftSeconds--;
+                
+                const hrs = Math.floor(timeLeftSeconds / 3600);
+                const mins = Math.floor((timeLeftSeconds % 3600) / 60);
+                const secs = timeLeftSeconds % 60;
+                
+                const timerElem = document.getElementById('timer-display');
+                const timerBox = document.getElementById('timer-box');
+
+                if (timerElem) {
+                    const formatted = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                    timerElem.innerText = formatted;
+                }
+
+                // Alert style when time < 5 mins (300 secs)
+                if (timeLeftSeconds <= 300 && timerBox) {
+                    timerBox.className = "bg-red-600 px-4 py-2 rounded-xl border border-red-500 text-center flex items-center gap-3 animate-pulse text-white";
+                    if (timerElem) timerElem.className = "font-mono text-base font-extrabold text-white leading-tight";
+                }
+
+                if (timeLeftSeconds <= 0) {
+                    clearInterval(examTimerInterval);
+                    alert("Waktu pengerjaan ujian telah habis! Sistem akan otomatis menyimpan dan mengumpulkan jawaban Anda.");
+                    submitExamAnswers(examId);
+                }
+            }, 1000);
+        }
+
+        function saveAnswer(qId, val, qIndex) {
+            if (typeof val === 'string') {
+                if (val.trim() === '') {
+                    delete currentStudentAnswers[qId];
+                } else {
+                    currentStudentAnswers[qId] = val;
+                }
+            } else {
+                currentStudentAnswers[qId] = val;
+            }
+            updateQuestionNav();
+        }
+
+        function updateQuestionNav() {
+            if (!activeExamRef) return;
+
+            let totalQuestions = activeExamRef.questions.length;
+            let answeredCount = 0;
+
+            activeExamRef.questions.forEach((q, idx) => {
+                const navBtn = document.getElementById(`nav-btn-${idx}`);
+                const statusBadge = document.getElementById(`status-badge-${idx}`);
+                const isAnswered = currentStudentAnswers[q.id] !== undefined && currentStudentAnswers[q.id] !== '';
+
+                if (isAnswered) {
+                    answeredCount++;
+                    if (navBtn) {
+                        navBtn.className = "h-9 rounded-xl text-xs font-bold border transition-all flex items-center justify-center bg-emerald-600 border-emerald-600 text-white shadow-sm ring-2 ring-emerald-300/50";
+                    }
+                    if (statusBadge) {
+                        statusBadge.className = "bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full";
+                        statusBadge.innerText = "Terjawab";
+                    }
+                } else {
+                    if (navBtn) {
+                        navBtn.className = "h-9 rounded-xl text-xs font-bold border transition-all flex items-center justify-center bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200";
+                    }
+                    if (statusBadge) {
+                        statusBadge.className = "bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full";
+                        statusBadge.innerText = "Belum Diisi";
+                    }
+                }
+            });
+
+            const progressBadge = document.getElementById('progress-badge');
+            const navSummary = document.getElementById('nav-summary');
+
+            if (progressBadge) progressBadge.innerText = `${answeredCount} / ${totalQuestions} Terjawab`;
+            if (navSummary) navSummary.innerText = `${answeredCount}/${totalQuestions}`;
+        }
+
+        function scrollToQuestion(index) {
+            const el = document.getElementById(`q-card-${index}`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function submitExamAnswers(examId) {
+            if (examTimerInterval) clearInterval(examTimerInterval);
+            const ex = appData.exams.find(x => x.id === examId);
+
+            let totalScore = 0;
+            let totalPG = 0;
+            let correctPG = 0;
+
+            ex.questions.forEach(q => {
+                if (q.type === 'PG') {
+                    totalPG++;
+                    if (currentStudentAnswers[q.id] !== undefined && parseInt(currentStudentAnswers[q.id]) === q.answer) {
+                        correctPG++;
+                    }
+                }
+            });
+
+            totalScore = totalPG > 0 ? Math.round((correctPG / totalPG) * 100) : 100;
+
+            const studentName = activeExamStudentDetails ? activeExamStudentDetails.name : (appData.currentUser ? appData.currentUser.name : 'Siswa');
+            const studentNisn = activeExamStudentDetails ? activeExamStudentDetails.nisn : (appData.currentUser ? appData.currentUser.nisn : '');
+
+            // Save result
+            appData.results.push({
+                id: Date.now(),
+                studentName: studentName,
+                nisn: studentNisn,
+                subject: ex.subject,
+                score: totalScore,
+                date: new Date().toLocaleDateString('id-ID')
+            });
+            saveData();
+
+            alert(`Ujian Berhasil Dikirim!\nNama: ${studentName}\nNilai PG Anda: ${totalScore}`);
+            switchTab('siswa-nilai');
+        }
+
+        function renderSiswaNilaiView(container) {
+            if (!appData.currentUser) return;
+            const myResults = appData.results.filter(r => r.nisn === appData.currentUser.nisn);
+
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <h2 class="text-lg font-bold text-slate-800">Hasil Nilai Ujian Saya</h2>
+                        <p class="text-xs text-slate-500">Daftar nilai ujian yang telah dikerjakan</p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 border-b text-slate-500 text-xs uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">Tanggal</th>
+                                    <th class="p-3">Mata Pelajaran</th>
+                                    <th class="p-3 text-center">Nilai Final</th>
+                                    <th class="p-3 text-center">Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${myResults.length === 0 ? `
+                                    <tr><td colspan="4" class="p-4 text-center text-slate-400 text-xs">Belum ada nilai ujian tersimpan.</td></tr>
+                                ` : myResults.map(r => `
+                                    <tr>
+                                        <td class="p-3 text-xs text-slate-500">${r.date}</td>
+                                        <td class="p-3 font-semibold text-slate-800">${r.subject}</td>
+                                        <td class="p-3 text-center font-bold text-base text-brand-700">${r.score}</td>
+                                        <td class="p-3 text-center">
+                                            <span class="${r.score >= 75 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-700'} text-xs font-bold px-2.5 py-1 rounded-full">
+                                                ${r.score >= 75 ? 'Tuntas' : 'Remedial'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Initialize App on DOM Ready
+        window.addEventListener('DOMContentLoaded', () => {
+            initApp();
+        });
+    </script>
+</body>
+</html>
